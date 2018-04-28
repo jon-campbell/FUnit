@@ -30,6 +30,6 @@ let ReportResults (reporter:IReportResults) expected actual =
 let main argv =
     let areEqual = new ConsoleReporter() |> ReportResults
     areEqual 10 10
-    areEqual true true
-    areEqual "some" "fail"
+    //areEqual true true
+    //areEqual "some" "fail"
     0
