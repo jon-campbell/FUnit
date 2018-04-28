@@ -1,35 +1,51 @@
-﻿type Result = PASS | FAIL | EXCEPTION
+﻿type Result = Pass | Fail | Exception
 
-let Is predicate expected actual =
+let should predicate expected actual =
     try
         match predicate expected actual with
-        | true  -> PASS
-        | false -> FAIL
+        | true -> Pass
+        | false -> Fail
     with
-    | Failure _ -> EXCEPTION
+    | Failure _ -> Exception
 
-let ToResultString = function
-    | PASS  -> "PASS"
-    | FAIL -> "FAIL"
-    | EXCEPTION -> "UNHANDLED EXCEPTION"
+let equal expected =
+    expected.Equals
+
+let ``This is an example of a test`` () =
+    10 |> should equal 10
+
+let ``This is another test`` () =
+    "string" |> should equal "string"
+
+let Find _ =
+    seq {
+        yield ``This is an example of a test``
+        yield ``This is another test``
+    }
+
+let Execute tests =
+    let ExecuteTest test =
+        match test () with
+        | Pass  -> "PASS"
+        | Fail -> "FAIL"
+        | Exception -> "UNHANDLED EXCEPTION"
+
+    Seq.map ExecuteTest tests
 
 type IReportResults =
     abstract member Report: string -> unit
 
-type ConsoleReporter() =
+type ConsoleReporter () =
 
     interface IReportResults with
-        member this.Report result = printfn "%s" result
+        member this.Report result =
+            printfn "%s" result
 
-let ReportResults (reporter:IReportResults) expected actual =
-    Is (fun expected actual -> expected.Equals actual) expected actual
-    |> ToResultString
-    |> reporter.Report
+let Report =
+    let reporter = new ConsoleReporter () :> IReportResults
+    Seq.iter reporter.Report
 
 [<EntryPoint>]
 let main argv =
-    let areEqual = new ConsoleReporter() |> ReportResults
-    areEqual 10 10
-    //areEqual true true
-    //areEqual "some" "fail"
+    Find argv |> Execute |> Report
     0
